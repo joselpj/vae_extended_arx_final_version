@@ -7,22 +7,22 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
-from load_data import cascaded_tanks_dataset
+# from load_data import cascaded_tanks_dataset
 # from load_data import gas_furnace_dataset
 # from load_data import silverbox_dataset
-#from load_data import wiener_hammer_dataset
+from load_data import wiener_hammer_dataset
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print('Using {} device'.format(device))
 
 # Load trained model
 vaearx = VaeArx(100, 1, 2, 64, 9)
-vaearx.load_state_dict(torch.load("trained_models/vaearx_cascaded_tanks_dataset2021-11-10_15-37-33.dat"))
+vaearx.load_state_dict(torch.load("trained_models/vaearx_wiener_hammer_dataset2021-11-10_21-33-41.dat"))
 
 print(vaearx)
 
-data_name = "cascaded_tanks_dataset"
-x_train, y_train, x_test, y_test = cascaded_tanks_dataset(4, 5, 1, normalize=True)
+data_name = "wiener_hammer_dataset"
+x_train, y_train, x_test, y_test = wiener_hammer_dataset(4, 5, 1, normalize=False)
 test_inputs = torch.Tensor(x_test)
 test_outputs = torch.Tensor(y_test)
 
@@ -45,14 +45,14 @@ print(latent_arr.shape)
 
 
 
-#"""""
+"""""
 # revert normalization. data in original range of values.
 max = 10 # cascaded_tank: 10 ; gas_furnace: 60.5 ; silverbox :0.26493 ; wiener_hammer: 0.63587
 min = 2.9116 # cascaded_tank: 2.9116 ; gas_furnace: 45.6 ; silverbox :-0.26249 ; wiener_hammer: -1.1203
 scaler = MinMaxScaler(feature_range=(min, max))
 output_arr = scaler.fit_transform(output_arr.reshape(samples, 1))
 test_outputs = scaler.fit_transform(test_outputs.reshape(samples, 1))
-#"""""
+"""""
 
 
 
@@ -83,10 +83,14 @@ fig.subplots_adjust(hspace=0.6, wspace=0.4)
 
 for i in range(2):
     ax = fig.add_subplot(1, 2, i+1)
-    ax.hist(latent_arr[:,i], density=True, bins = 20)
-    ax.axis('off')
+    ax.hist(latent_arr[:,i], density=True, bins = 20, label="$\mu$:" + str(np.mean(latent_arr[:,i])) + "\n$\sigma:$" + str(np.std(latent_arr[:, i])))
+    print("\nMean: ", np.mean(latent_arr[:,i]))
+    print("\nstd: ", np.std(latent_arr[:, i]))
+    #ax.axis('off')
     ax.text(0.5, -0.35, str(i), fontsize=10, ha='center', transform=ax.transAxes)
-    ax.plot(x,norm.pdf(x))
+    ax.plot(x,norm.pdf(x), label='std_norm_pdf')
+    ax.legend(prop={"size":16})
+    plt.grid(True)
 
 
 plt.show()
